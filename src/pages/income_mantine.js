@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { nanoid } from "nanoid";
 import { Link } from "react-router-dom";
 import Button from "react-bootstrap/Button";
@@ -6,11 +6,17 @@ import Card from "react-bootstrap/Card";
 import Table from "react-bootstrap/Table";
 import Form from "react-bootstrap/Form";
 import { BsTrash } from "react-icons/bs";
+import { BiSolidErrorCircle } from "react-icons/bi";
+import { notifications } from "@mantine/notifications";
+import { TextInput } from "@mantine/core";
 
 export default function Income() {
+  const openRef = useRef(null);
   const [name, setName] = useState("");
   const [amount, setAmount] = useState(0);
+  const [image, setImage] = useState();
   const [category, setCategory] = useState("");
+  const [keywords, setKeywords] = useState("");
   const [filter, setFilter] = useState("");
   const [incomeList, setIncomeList] = useState([]);
   const [checkedList, setCheckedList] = useState([]);
@@ -26,10 +32,10 @@ export default function Income() {
   }, []);
 
   const filteredList = useMemo(() => {
-    return incomeList.filter((i) =>
-      filter === "" ? true : i.category === filter
-    );
-  }, [filter, incomeList]);
+    return incomeList
+      .filter((i) => (filter === "" ? true : i.category === filter))
+      .filter((i) => i.name.toLowerCase().indexOf(keywords.toLowerCase()) >= 0);
+  }, [filter, incomeList, keywords]);
 
   const addIncome = () => {
     // 1. clone the list
@@ -53,7 +59,12 @@ export default function Income() {
       setName("");
       setAmount(0);
     } else {
-      alert("Please insert your income");
+      notifications.show({
+        title: "Please insert the name & amount",
+        message: "Thank You!",
+        color: "red",
+        icon: <BiSolidErrorCircle />,
+      });
     }
   };
 
@@ -136,6 +147,13 @@ export default function Income() {
       <Card>
         <Card.Body>
           <Card.Title>Income</Card.Title>
+          <TextInput
+            value={keywords}
+            placeholder="Type your keyword..."
+            onChange={(event) => {
+              setKeywords(event.target.value);
+            }}
+          />
           <Form.Select
             className="mb-4"
             value={filter}
